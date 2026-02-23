@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Technology Risk Governance Integrated Map</title>
+
+  <style>
+    :root{
+      --bg:#0b0f17;
+      --panel:#111827;
+      --card:#0f172a;
+      --text:#e5e7eb;
+      --muted:#9ca3af;
+      --line:#1f2937;
+      --accent:#60a5fa;
+      --ok:#22c55e;
+      --warn:#f59e0b;
+      --info:#a78bfa;
+      --todo:#94a3b8;
+    }
+    body{
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans TC", Arial;
+      background: radial-gradient(1200px 800px at 20% 10%, rgba(96,165,250,.18), transparent 60%),
+                  radial-gradient(1000px 700px at 80% 30%, rgba(167,139,250,.14), transparent 60%),
+                  var(--bg);
+      color: var(--text);
+    }
+    header{
+      padding: 22px 18px 10px;
+      border-bottom: 1px solid var(--line);
+      background: rgba(17,24,39,.55);
+      backdrop-filter: blur(10px);
+      position: sticky;
+      top: 0;
+      z-index: 50;
+    }
+    .wrap{
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    h1{
+      margin: 0 0 6px 0;
+      font-size: 20px;
+      letter-spacing: .2px;
+    }
+    .subtitle{
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.5;
+    }
+    .tabs{
+      display:flex;
+      gap:8px;
+      flex-wrap: wrap;
+      margin-top: 12px;
+    }
+    .tab{
+      background: rgba(15,23,42,.7);
+      border: 1px solid var(--line);
+      color: var(--text);
+      padding: 9px 12px;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 13px;
+      user-select: none;
+    }
+    .tab.active{
+      border-color: rgba(96,165,250,.55);
+      box-shadow: 0 0 0 3px rgba(96,165,250,.12);
+    }
+
+    main{ padding: 18px; }
+    .grid{
+      display:grid;
+      grid-template-columns: 1.5fr .9fr;
+      gap: 14px;
+    }
+    @media (max-width: 980px){
+      .grid{ grid-template-columns: 1fr; }
+      header{ position: relative; }
+    }
+    .card{
+      background: rgba(15,23,42,.7);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 14px;
+    }
+    .card h2{
+      margin:0 0 8px 0;
+      font-size: 14px;
+      color: #f3f4f6;
+    }
+    .note{
+      margin: 0 0 10px 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.55;
+    }
+    .diagram{
+      overflow:auto;
+      border-radius: 12px;
+      border: 1px dashed rgba(148,163,184,.28);
+      padding: 10px;
+      background: rgba(2,6,23,.45);
+    }
+    .legend{
+      display:flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 8px;
+    }
+    .pill{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding: 7px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: rgba(17,24,39,.6);
+      font-size: 12px;
+      color: var(--text);
+    }
+    .dot{ width:10px; height:10px; border-radius: 50%; display:inline-block; }
+    .dot.ok{ background: var(--ok); }
+    .dot.warn{ background: var(--warn); }
+    .dot.info{ background: var(--info); }
+    .dot.todo{ background: var(--todo); }
+
+    .list{
+      display:flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 10px;
+    }
+    .item{
+      border: 1px solid var(--line);
+      background: rgba(2,6,23,.4);
+      border-radius: 12px;
+      padding: 10px 10px;
+    }
+    .item .k{
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+    .item .v{
+      font-size: 13px;
+      line-height: 1.6;
+    }
+    .anchor{
+      color: var(--accent);
+      text-decoration: none;
+    }
+    .anchor:hover{ text-decoration: underline; }
+
+    /* Mermaid SVG sizing */
+    .mermaid svg{ max-width: 100%; height: auto; }
+
+    /* Page sections */
+    .page{ display:none; }
+    .page.active{ display:block; }
+
+    /* Small footer */
+    footer{
+      border-top: 1px solid var(--line);
+      padding: 14px 18px;
+      color: var(--muted);
+      font-size: 12px;
+      margin-top: 18px;
+    }
+  </style>
+
+  <!-- Mermaid v10+ (ESM) -->
+  <script type="module">
+    import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+
+    mermaid.initialize({
+      startOnLoad: true,
+      securityLevel: "loose",
+      theme: "dark",
+      themeVariables: {
+        darkMode: true,
+        fontFamily: 'ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans TC", Arial',
+        primaryColor: "#0b1220",
+        primaryTextColor: "#e5e7eb",
+        primaryBorderColor: "#334155",
+        lineColor: "#64748b",
+        secondaryColor: "#0b1220",
+        tertiaryColor: "#0b1220",
+        clusterBkg: "#0b1220",
+        clusterBorder: "#334155",
+      },
+      flowchart: { curve: "basis" }
+    });
+
+    // Make node click scroll to sidebar explanation
+    window.__go = (id) => {
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.scrollIntoView({ behavior: "smooth", block: "start" });
+      el.style.boxShadow = "0 0 0 3px rgba(96,165,250,.22)";
+      setTimeout(()=> el.style.boxShadow = "", 1200);
+    };
+  </script>
+</head>
+
+<body>
+<header>
+  <div class="wrap">
+    <h1>科技風險治理整合總圖（Technology Risk Governance Integrated Map）</h1>
+    <div class="subtitle">
+      研究中心品牌版（可部署單檔）：四張圖＝整體結構、核心交叉、垂直治理堆疊、台灣定位與進展。<br/>
+      圖上節點可點擊（導向右側說明），後續可擴充成篩選/搜尋/hover tooltip。
+    </div>
+
+    <div class="tabs" role="tablist" aria-label="Map Tabs">
+      <div class="tab active" data-tab="p1">1) 整體結構圖</div>
+      <div class="tab" data-tab="p2">2) 核心交叉結構</div>
+      <div class="tab" data-tab="p3">3) 治理層級垂直架構</div>
+      <div class="tab" data-tab="p4">4) 台灣定位與狀態</div>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <!-- PAGE 1 -->
+  <section class="page active" id="p1">
+    <div class="grid">
+      <div class="card">
+        <h2>1) 整體結構圖（六層治理架構）</h2>
+        <p class="note">
+          這張圖回答：「不同規範/指南在治理堆疊的哪一層？彼此怎麼銜接？」<br/>
+          點擊節點可跳到右側說明（例如 EU AI Act / DORA / ISO 42001 / NIST AI RMF）。
+        </p>
+
+        <div class="diagram">
+          <div class="mermaid">
+flowchart TB
+  classDef soft fill:#0b1220,stroke:#334155,stroke-width:1px,color:#e5e7eb;
+  classDef law fill:#111827,stroke:#64748b,stroke-width:1px,color:#e5e7eb;
+  classDef sys fill:#0f172a,stroke:#60a5fa,stroke-width:1px,color:#e5e7eb;
+  classDef fw fill:#0b1220,stroke:#a78bfa,stroke-width:1px,color:#e5e7eb;
+  classDef tech fill:#0b1220,stroke:#f59e0b,stroke-width:1px,color:#e5e7eb;
+  classDef sector fill:#0b1220,stroke:#22c55e,stroke-width:1px,color:#e5e7eb;
+
+  L1["Layer 1<br/>價值/原則層 (Soft law)<br/>OECD / UNESCO / G7"]:::soft
+  L2["Layer 2<br/>強制法律/監管層 (Hard law)<br/>EU AI Act / DORA / NIS2 / CRA / GDPR<br/>台灣：AI基本法 / 資安法 / 個資法"]:::law
+  L3["Layer 3<br/>管理系統層 (Auditable System)<br/>ISO 42001 / ISO 23894 / ISO 27001/27701 / ISO 22301"]:::sys
+  L4["Layer 4<br/>操作框架層 (Operational Framework)<br/>NIST AI RMF / NIST CSF 2.0 / RMF / 800-53"]:::fw
+  L5["Layer 5<br/>技術控制層 (Technical Controls)<br/>Red Team / Model Testing / LLM Security / Supply-chain controls"]:::tech
+  L6["Layer 6<br/>產業監理層 (Sectoral Rules)<br/>FSC AI 指引 / 平台反詐 / 醫療/電信/政府採購"]:::sector
+
+  L1 --> L2 --> L3 --> L4 --> L5 --> L6
+
+  L2 --> EU["EU AI Act"]:::law
+  L2 --> DORA["DORA (EU Finance ICT Resilience)"]:::law
+  L2 --> NIS2["NIS2"]:::law
+  L2 --> CRA["Cyber Resilience Act"]:::law
+  L2 --> GDPR["GDPR"]:::law
+  L2 --> TWAI["台灣：AI基本法"]:::law
+  L2 --> TWCS["台灣：資安管理法(修法)"]:::law
+  L2 --> TWPD["台灣：個資法(修法/PDPC)"]:::law
+
+  L3 --> ISO42001["ISO/IEC 42001 (AIMS)"]:::sys
+  L3 --> ISO23894["ISO/IEC 23894 (AI Risk)"]:::sys
+  L3 --> ISO27001["ISO/IEC 27001 (ISMS)"]:::sys
+  L3 --> ISO27701["ISO/IEC 27701 (PIMS)"]:::sys
+  L3 --> ISO22301["ISO 22301 (BCMS)"]:::sys
+
+  L4 --> NAI["NIST AI RMF"]:::fw
+  L4 --> NCSF["NIST CSF 2.0"]:::fw
+  L4 --> NRMF["NIST RMF (800-37)"]:::fw
+  L4 --> N80053["NIST 800-53"]:::fw
+
+  L6 --> FSC["台灣：FSC 金融業 AI 指引"]:::sector
+  L6 --> FRAUD["台灣：反詐/平台驗證義務"]:::sector
+
+  %% Click actions -> sidebar anchors
+  click EU call __go("d_eu_ai_act")
+  click DORA call __go("d_dora")
+  click ISO42001 call __go("d_iso_42001")
+  click ISO23894 call __go("d_iso_23894")
+  click NAI call __go("d_nist_ai_rmf")
+  click NCSF call __go("d_nist_csf")
+  click TWAI call __go("d_tw_ai_act")
+  click TWCS call __go("d_tw_cyber")
+  click TWPD call __go("d_tw_pdpa")
+  click FSC call __go("d_tw_fsc")
+          </div>
+        </div>
+
+        <div class="legend">
+          <span class="pill"><span class="dot info"></span> 方法論/框架（NIST）</span>
+          <span class="pill"><span class="dot ok"></span> 可稽核管理系統（ISO）</span>
+          <span class="pill"><span class="dot warn"></span> 強制法律/監管（EU/TW）</span>
+          <span class="pill"><span class="dot todo"></span> 技術控制/工程實作</span>
+        </div>
+      </div>
+
+      <aside class="card">
+        <h2>說明（點圖跳到對應段落）</h2>
+        <p class="note">這裡是你的「圖＝入口，文字＝證據鏈」的知識呈現方式。後續可把每段擴成 Notion 資料庫頁面。</p>
+
+        <div class="list">
+          <div class="item" id="d_eu_ai_act">
+            <div class="k">EU AI Act</div>
+            <div class="v">
+              管「AI 風險分級＋高風險 AI 義務（風險管理、資料治理、紀錄、透明、人類監督、韌性/資安、上市後監控/合格評定）」。
+            </div>
+          </div>
+
+          <div class="item" id="d_dora">
+            <div class="k">DORA（歐盟金融業 ICT 韌性）</div>
+            <div class="v">
+              管「ICT 風險管理、事件通報、韌性測試、第三方/雲端外包治理」。偏營運中斷與韌性，不等同 AI 法。
+            </div>
+          </div>
+
+          <div class="item" id="d_iso_42001">
+            <div class="k">ISO/IEC 42001（AI 管理系統）</div>
+            <div class="v">
+              以“管理系統”把 AI 治理制度化（可稽核/可持續改善）。適合研究中心做成顧問產品骨架。
+            </div>
+          </div>
+
+          <div class="item" id="d_iso_23894">
+            <div class="k">ISO/IEC 23894（AI 風險管理指引）</div>
+            <div class="v">
+              偏「AI 風險辨識/分析/處置」流程與情境化，常用來補強 ISO 42001 的風險方法細節。
+            </div>
+          </div>
+
+          <div class="item" id="d_nist_ai_rmf">
+            <div class="k">NIST AI RMF</div>
+            <div class="v">
+              GOV / MAP / MEASURE / MANAGE。把 AI 治理拆成可落地活動與量測，非常適合做指標化與監控。
+            </div>
+          </div>
+
+          <div class="item" id="d_nist_csf">
+            <div class="k">NIST CSF 2.0</div>
+            <div class="v">
+              GOVERN / IDENTIFY / PROTECT / DETECT / RESPOND / RECOVER。把資安治理與營運韌性納入同一套語言。
+            </div>
+          </div>
+
+          <div class="item" id="d_tw_ai_act">
+            <div class="k">台灣：AI 基本法（定位）</div>
+            <div class="v">
+              目前更偏「原則＋治理架構」定錨，後續細則（風險分級、文件義務、assurance）可能分階段成熟。
+            </div>
+          </div>
+
+          <div class="item" id="d_tw_cyber">
+            <div class="k">台灣：資安管理法（修法後走向）</div>
+            <div class="v">
+              強化資安治理、通報與制度化要求（實務上與 NIS2/DORA 在治理精神上相近，但適用與細節不同）。
+            </div>
+          </div>
+
+          <div class="item" id="d_tw_pdpa">
+            <div class="k">台灣：個資法（PDPA/PDPC）</div>
+            <div class="v">
+              資料治理與監理架構升級會直接影響 AI 訓練資料、使用目的、跨境資料與事故責任。
+            </div>
+          </div>
+
+          <div class="item" id="d_tw_fsc">
+            <div class="k">台灣：FSC 金融業 AI 指引</div>
+            <div class="v">
+              強調金融機構 AI 治理架構、責任歸屬、風險控管、使用範圍與消費者保護面向（配合內稽/內控）。
+            </div>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </section>
+
+  <!-- PAGE 2 -->
+  <section class="page" id="p2">
+    <div class="grid">
+      <div class="card">
+        <h2>2) 核心交叉結構（五軸風險宇宙）</h2>
+        <p class="note">
+          這張圖回答：「AI 風險不是單點，而是與資安、隱私、供應鏈、產業監理交叉放大。」<br/>
+          你可以把每條邊當成研究中心的一個研究線／顧問產品線。
+        </p>
+
+        <div class="diagram">
+          <div class="mermaid">
+flowchart LR
+  classDef axis fill:#0b1220,stroke:#334155,stroke-width:1px,color:#e5e7eb;
+  classDef ref fill:#0f172a,stroke:#60a5fa,stroke-width:1px,color:#e5e7eb;
+
+  AI["AI Risk<br/>公平/歧視<br/>可解釋/透明<br/>模型漂移/濫用"]:::axis
+  CY["Cyber Risk<br/>攻擊/勒索<br/>中斷/復原<br/>偵測/通報"]:::axis
+  PR["Privacy Risk<br/>個資/資料治理<br/>自動化決策<br/>跨境資料"]:::axis
+  SC["Supply-chain Risk<br/>雲端集中風險<br/>外包/第三方<br/>模型/資料供應鏈"]:::axis
+  SE["Sector Risk<br/>金融/醫療/電信<br/>公平待客<br/>合規稽核"]:::axis
+
+  AI --- CY
+  AI --- PR
+  AI --- SC
+  AI --- SE
+  CY --- SC
+  CY --- SE
+  PR --- SE
+  PR --- SC
+
+  EU["EU AI Act"]:::ref
+  DORA["DORA"]:::ref
+  NIS2["NIS2"]:::ref
+  GDPR["GDPR/PDPA"]:::ref
+  ISO["ISO 42001/23894"]:::ref
+  NIST["NIST AI RMF/CSF"]:::ref
+
+  EU --> AI
+  DORA --> CY
+  DORA --> SC
+  NIS2 --> CY
+  GDPR --> PR
+  ISO --> AI
+  ISO --> PR
+  NIST --> AI
+  NIST --> CY
+          </div>
+        </div>
+      </div>
+
+      <aside class="card">
+        <h2>交叉風險示例（可直接當課堂案例）</h2>
+        <div class="list">
+          <div class="item">
+            <div class="k">授信/核保模型</div>
+            <div class="v">AI（公平/偏誤）× 隱私（資料治理）× 產業監理（公平待客/模型治理）</div>
+          </div>
+          <div class="item">
+            <div class="k">雲端 LLM 供應鏈</div>
+            <div class="v">AI（濫用/幻覺）× 資安（攻擊面）× 供應鏈（集中風險/外包責任）</div>
+          </div>
+          <div class="item">
+            <div class="k">生成式 AI 詐欺</div>
+            <div class="v">AI（合成內容）× 平台治理（反詐/驗證）× 資安（社工/釣魚/入侵）</div>
+          </div>
+          <div class="item">
+            <div class="k">你研究中心的產品化切口</div>
+            <div class="v">把「交叉邊」做成顧問模組：政策→流程→控制→量測→稽核證據鏈。</div>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </section>
+
+  <!-- PAGE 3 -->
+  <section class="page" id="p3">
+    <div class="grid">
+      <div class="card">
+        <h2>3) 治理層級垂直架構＋對應工具（從董事會到工程）</h2>
+        <p class="note">
+          這張圖回答：「每一層要用哪些工具/標準支撐？交付物（證據鏈）在哪一層產生？」<br/>
+          你可以把這張圖直接變成研究中心的「方法論總覽」。
+        </p>
+
+        <div class="diagram">
+          <div class="mermaid">
+flowchart TB
+  classDef lvl fill:#0b1220,stroke:#334155,stroke-width:1px,color:#e5e7eb;
+  classDef tool fill:#0f172a,stroke:#60a5fa,stroke-width:1px,color:#e5e7eb;
+
+  V1["Level 1 原則/價值<br/>董事會承諾、倫理、人權"]:::lvl
+  V2["Level 2 法規/監管義務<br/>罰則、通報、上市要求"]:::lvl
+  V3["Level 3 管理系統<br/>方針、流程、內稽、持續改善"]:::lvl
+  V4["Level 4 操作框架<br/>風險辨識/量測/監控活動"]:::lvl
+  V5["Level 5 技術控制<br/>測試、紅隊、資安控制、漏洞管理"]:::lvl
+  V6["Level 6 監測與預警<br/>KRI/KPI、儀表板、情境演練"]:::lvl
+
+  V1 --> V2 --> V3 --> V4 --> V5 --> V6
+
+  T1["OECD/UNESCO/G7"]:::tool
+  T2["EU AI Act / DORA / NIS2 / CRA / GDPR<br/>台灣：AI基本法/資安法/個資法"]:::tool
+  T3["ISO 42001 / 23894<br/>ISO 27001/27701/22301"]:::tool
+  T4["NIST AI RMF / CSF 2.0<br/>NIST RMF / 800-53"]:::tool
+  T5["Model Testing / Red Team<br/>LLM Safety / Supply-chain security"]:::tool
+  T6["KRI/KPI、監控、事件回饋<br/>桌上演練/壓力測試"]:::tool
+
+  V1 --- T1
+  V2 --- T2
+  V3 --- T3
+  V4 --- T4
+  V5 --- T5
+  V6 --- T6
+          </div>
+        </div>
+      </div>
+
+      <aside class="card">
+        <h2>每一層「典型交付物」提示（做成稽核證據鏈）</h2>
+        <div class="list">
+          <div class="item">
+            <div class="k">Level 2–3（最常被查核）</div>
+            <div class="v">政策/治理架構、責任矩陣（RACI）、風險評估、供應商管理、內稽與改善紀錄。</div>
+          </div>
+          <div class="item">
+            <div class="k">Level 4–5（最難但最有價值）</div>
+            <div class="v">模型/資料測試報告、對抗測試、監控指標、事件演練、落地控制證據。</div>
+          </div>
+          <div class="item">
+            <div class="k">Level 6（差異化與產品化）</div>
+            <div class="v">把監控與預警做成儀表板＋定期報告＝研究中心的持續服務型產品。</div>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </section>
+
+  <!-- PAGE 4 -->
+  <section class="page" id="p4">
+    <div class="grid">
+      <div class="card">
+        <h2>4) 台灣定位與狀態（分層標註）</h2>
+        <p class="note">
+          這張圖把台灣目前在各層的狀態標上去：<br/>
+          ✅ 已通過 / 🟠 已公布待施行 / 🟣 已發布指引 / ⚪ 待建置（例如高風險分類＋assurance 制度化）。
+        </p>
+
+        <div class="diagram">
+          <div class="mermaid">
+flowchart TB
+  classDef ok fill:#06240f,stroke:#22c55e,stroke-width:1px,color:#e5e7eb;
+  classDef warn fill:#2a1d07,stroke:#f59e0b,stroke-width:1px,color:#e5e7eb;
+  classDef info fill:#1a1233,stroke:#a78bfa,stroke-width:1px,color:#e5e7eb;
+  classDef todo fill:#0b1220,stroke:#94a3b8,stroke-width:1px,color:#e5e7eb;
+
+  TW1["原則層<br/>台灣：AI基本法的治理原則（7原則）"]:::ok
+  TW2["法律/監管層<br/>台灣：AI基本法（已通過）"]:::ok
+  TW3["資安法制層<br/>資安管理法（修法：已公布，施行待定/配套中）"]:::warn
+  TW4["隱私法制層<br/>個資法修法/PDPC（已公布，施行待定/配套中）"]:::warn
+  TW5["產業監理層<br/>FSC 金融業 AI 指引（已發布）"]:::info
+  TW6["制度化缺口<br/>高風險 AI 分級與文件義務（待建置）"]:::todo
+  TW7["Assurance 缺口<br/>第三方測試/審計/上市後監控制度化（待建置）"]:::todo
+
+  TW1 --> TW2 --> TW3 --> TW4 --> TW5
+  TW2 --> TW6 --> TW7
+          </div>
+        </div>
+
+        <div class="legend">
+          <span class="pill"><span class="dot ok"></span> 已通過/已確立</span>
+          <span class="pill"><span class="dot warn"></span> 已公布待施行/配套中</span>
+          <span class="pill"><span class="dot info"></span> 已發布指引</span>
+          <span class="pill"><span class="dot todo"></span> 待建置（市場缺口）</span>
+        </div>
+      </div>
+
+      <aside class="card">
+        <h2>台灣下一步很可能落在哪裡（用於研究中心策略）</h2>
+        <div class="list">
+          <div class="item">
+            <div class="k">1) 風險分級制度</div>
+            <div class="v">把 AI 應用分級，對高風險系統建立文件義務與稽核要求（類 EU 但可能採漸進式）。</div>
+          </div>
+          <div class="item">
+            <div class="k">2) Assurance / Audit 產業化</div>
+            <div class="v">模型測試、紅隊、監控與稽核證據鏈制度化 → 直接變成顧問與第三方評測市場。</div>
+          </div>
+          <div class="item">
+            <div class="k">3) 供應鏈/第三方集中風險</div>
+            <div class="v">雲端與AI API 外包治理（集中風險、合約條款、退出計畫、事件責任）會成為關鍵。</div>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </section>
+
+</main>
+
+<footer class="wrap">
+  <div>
+    部署建議：GitHub Pages / Vercel / Netlify。Notion 嵌入：使用 iframe 指向部署後網址。<br/>
+    下一步可做：1) 篩選器（顯示 EU/台灣/ISO/NIST） 2) hover tooltip 3) 搜尋節點 4) 連結 Notion database 內容頁。
+  </div>
+</footer>
+
+<script>
+  // Tabs
+  const tabs = document.querySelectorAll(".tab");
+  const pages = document.querySelectorAll(".page");
+
+  tabs.forEach(t => t.addEventListener("click", () => {
+    const id = t.getAttribute("data-tab");
+    tabs.forEach(x => x.classList.remove("active"));
+    t.classList.add("active");
+    pages.forEach(p => p.classList.remove("active"));
+    document.getElementById(id).classList.add("active");
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }));
+</script>
+
+</body>
+</html>
