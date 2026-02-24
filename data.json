@@ -490,7 +490,7 @@
 
     {
       "id": "TW_AI_ACT",
-      "name": "台灣：AI 治理/基本法（狀態請你填）",
+      "name": "台灣：AI 治理/基本法",
       "key": "TW_AI_ACT",
       "layer": "L2",
       "type": "Law",
@@ -503,7 +503,7 @@
     },
     {
       "id": "TW_CYBER_ACT",
-      "name": "台灣：資安法/資安治理（狀態請你填）",
+      "name": "台灣：資安法/資安治理",
       "key": "TW_CYBER_ACT",
       "layer": "L2",
       "type": "Law",
@@ -516,7 +516,7 @@
     },
     {
       "id": "TW_PDPA_PDPC",
-      "name": "台灣：個資法/個資監理（狀態請你填）",
+      "name": "台灣：個資法/個資監理",
       "key": "TW_PDPA_PDPC",
       "layer": "L2",
       "type": "Law",
@@ -529,7 +529,7 @@
     },
     {
       "id": "TW_FSC_AI_GUIDE",
-      "name": "台灣：金融業 AI 指引（狀態請你填）",
+      "name": "台灣：金融業 AI 指引",
       "key": "TW_FSC_AI_GUIDE",
       "layer": "L6",
       "type": "Guideline",
@@ -640,4 +640,5 @@
     { "id": "e_TWGAP3", "source": "TW_AI_ASSURANCE_AUDIT", "target": "NIST_AI_RMF", "label": "gap vs" },
     { "id": "e_TWGAP4", "source": "TW_AI_ASSURANCE_AUDIT", "target": "ISO_42001", "label": "gap vs" }
   ]
+
 }
