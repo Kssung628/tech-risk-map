@@ -1,886 +1,103 @@
-<!doctype html>
-<html lang="zh-Hant">
+<!DOCTYPE html>
+<html>
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Technology Risk Governance Integrated Map (Cytoscape Pro)</title>
-
-  <style>
-    :root{
-      --bg:#0b0f17; --panel:#0f172a; --line:#1f2937;
-      --text:#e5e7eb; --muted:#9ca3af; --accent:#60a5fa;
-      --chip:#0b1220;
-    }
-    *{ box-sizing: border-box; }
-    body{
-      margin:0;
-      font-family: ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans TC",Arial;
-      background: radial-gradient(1200px 800px at 20% 10%, rgba(96,165,250,.16), transparent 60%),
-                  radial-gradient(1000px 700px at 80% 30%, rgba(167,139,250,.12), transparent 60%),
-                  var(--bg);
-      color: var(--text);
-    }
-    header{
-      padding: 16px 16px 12px;
-      border-bottom: 1px solid var(--line);
-      background: rgba(17,24,39,.55);
-      backdrop-filter: blur(10px);
-      position: sticky; top:0; z-index: 10;
-    }
-    .wrap{ max-width: 1480px; margin: 0 auto; }
-    h1{ margin:0 0 6px 0; font-size:18px; }
-    .sub{ color: var(--muted); font-size:13px; line-height:1.55; }
-
-    main{ padding: 14px 16px 18px; }
-    .grid{
-      display:grid;
-      grid-template-columns: 1.65fr .85fr;
-      gap: 12px;
-      align-items: stretch;
-    }
-    @media (max-width: 980px){ .grid{ grid-template-columns: 1fr; } header{ position:relative; } }
-
-    .card{
-      background: rgba(15,23,42,.75);
-      border: 1px solid var(--line);
-      border-radius: 14px;
-      padding: 12px;
-      min-height: 200px;
-    }
-
-    #cy{
-      width: 100%;
-      height: 78vh;
-      min-height: 580px;
-      border-radius: 12px;
-      border: 1px dashed rgba(148,163,184,.28);
-      background: rgba(2,6,23,.45);
-    }
-
-    .toolbar{
-      display:flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      margin-bottom: 10px;
-      align-items: center;
-      justify-content: space-between;
-    }
-    .left, .right{ display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
-    .btn{
-      appearance:none;
-      border: 1px solid var(--line);
-      background: rgba(17,24,39,.55);
-      color: var(--text);
-      padding: 8px 10px;
-      border-radius: 10px;
-      font-size: 12px;
-      cursor: pointer;
-      user-select:none;
-    }
-    .btn:hover{ border-color: rgba(96,165,250,.55); }
-    .btn.active{
-      border-color: rgba(96,165,250,.65);
-      box-shadow: 0 0 0 3px rgba(96,165,250,.12);
-    }
-    .input, select{
-      border: 1px solid var(--line);
-      background: rgba(2,6,23,.35);
-      color: var(--text);
-      padding: 8px 10px;
-      border-radius: 10px;
-      font-size: 12px;
-      outline: none;
-    }
-    select{ cursor:pointer; }
-
-    .chip{
-      display:inline-flex;
-      gap:6px;
-      align-items:center;
-      padding: 6px 10px;
-      border-radius: 999px;
-      border: 1px solid var(--line);
-      background: rgba(2,6,23,.35);
-      color: var(--muted);
-      font-size: 12px;
-      white-space: nowrap;
-    }
-    .dot{ width:10px; height:10px; border-radius: 3px; display:inline-block; border:1px solid rgba(255,255,255,.18); }
-    .legend{ display:flex; flex-wrap:wrap; gap:8px; margin-top: 10px; }
-
-    .titleRow{ display:flex; justify-content: space-between; gap:10px; align-items: flex-start; }
-    .h2{ margin:0 0 6px 0; font-size: 14px; }
-    .muted{ color: var(--muted); font-size: 12px; line-height: 1.55; }
-    .kv{ margin-top: 10px; display:grid; grid-template-columns: 110px 1fr; gap: 8px 10px; }
-    .k{ color: var(--muted); font-size: 12px; }
-    .v{ font-size: 12px; line-height: 1.55; }
-    .mono{ font-family: ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono",monospace; }
-    .hr{ height:1px; background: var(--line); margin: 12px 0; }
-    a{ color: var(--accent); text-decoration: none; }
-    a:hover{ text-decoration: underline; }
-
-    .badge{
-      display:inline-flex;
-      align-items:center;
-      gap:6px;
-      padding: 4px 10px;
-      border-radius: 999px;
-      border: 1px solid var(--line);
-      font-size: 12px;
-      white-space: nowrap;
-      background: rgba(2,6,23,.35);
-      color: var(--text);
-    }
-    .badgeDot{ width:8px; height:8px; border-radius: 999px; display:inline-block; }
-
-    footer{ margin-top: 12px; color: var(--muted); font-size: 12px; }
-
-    /* Tippy tooltip theme */
-    .tippy-box[data-theme~='cy']{
-      background: rgba(2,6,23,.92);
-      border: 1px solid rgba(148,163,184,.35);
-      color: var(--text);
-      box-shadow: 0 10px 30px rgba(0,0,0,.35);
-    }
-    .tippy-box[data-theme~='cy'] .tippy-content{
-      font-size: 12px;
-      line-height: 1.5;
-    }
-    .tipTitle{ font-weight: 700; margin-bottom: 4px; }
-    .tipKey{ color: var(--muted); font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace; }
-    .tipRow{ margin-top: 6px; display:flex; gap:8px; flex-wrap:wrap; }
-    .tipChip{ border: 1px solid rgba(148,163,184,.25); background: rgba(2,6,23,.35); padding: 2px 8px; border-radius: 999px; color: var(--muted); }
-  </style>
-
-  <!-- Cytoscape core -->
-  <script src="https://cdn.jsdelivr.net/npm/cytoscape@3.28.1/dist/cytoscape.min.js"></script>
-
-  <!-- Tooltip stack: popper + tippy -->
-  <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2/dist/umd/popper.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/cytoscape-popper@2/cytoscape-popper.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/tippy.js@6/dist/tippy-bundle.umd.min.js"></script>
-
-  <!-- SVG export extension -->
-  <script src="https://cdn.jsdelivr.net/npm/cytoscape-svg@0.4.0/cytoscape-svg.min.js"></script>
+<meta charset="UTF-8">
+<title>TRG Cube Academic Edition</title>
+<script src="https://unpkg.com/cytoscape@3.28.1/dist/cytoscape.min.js"></script>
+<style>
+body{margin:0;font-family:Arial;background:#0b0f17;color:white}
+#toolbar{padding:10px;background:#111}
+#cy{width:100%;height:90vh}
+button,select{margin-right:8px}
+.hidden{display:none}
+.dim{opacity:0.15}
+</style>
 </head>
-
 <body>
-<header>
-  <div class="wrap">
-    <h1>科技風險治理整合總圖（Cytoscape 專業互動版 · 四視圖 · Tooltip · 匯出）</h1>
-    <div class="sub">
-      同一份資料 → 四種視圖（六層 / 五軸 / 垂直堆疊 / 台灣缺口）。原生拖曳、平移、縮放；Hover 顯示摘要；一鍵輸出 PNG/SVG；點節點可開 Notion。
-    </div>
-  </div>
-</header>
 
-<main class="wrap">
-  <div class="grid">
-    <div class="card">
-      <div class="toolbar">
-        <div class="left">
-          <button class="btn active" id="viewLayer">視圖：六層治理</button>
-          <button class="btn" id="viewRisk">視圖：五軸風險</button>
-          <button class="btn" id="viewStack">視圖：垂直堆疊</button>
-          <button class="btn" id="viewTW">視圖：台灣定位</button>
+<div id="toolbar">
+<button id="fit">Fit</button>
+<select id="view">
+<option value="layer">Layer View</option>
+<option value="risk">Risk View</option>
+</select>
 
-          <span class="chip"><span class="dot" style="background:#60a5fa"></span>Layer 色彩</span>
-          <span class="chip"><span class="dot" style="background:transparent;border-color:#22c55e"></span>台灣狀態（邊框）</span>
-          <span class="chip"><span class="dot" style="background:transparent;border-color:#94a3b8"></span>缺口節點（菱形/虛線）</span>
-        </div>
+<select id="phase">
+<option value="all">All</option>
+<option value="pre">Pre</option>
+<option value="ops">Ops</option>
+<option value="post">Post</option>
+</select>
 
-        <div class="right">
-          <button class="btn" id="btnFit">Fit</button>
-          <button class="btn" id="btnReset">Re-Layout</button>
+<label>
+<input type="checkbox" id="regToggle"> Show Regulatory
+</label>
 
-          <input class="input" id="q" placeholder="搜尋 Name / Node Key…" />
-          <button class="btn" id="btnFind">Find</button>
+<button id="export">Export PNG</button>
+</div>
 
-          <select id="fLayer">
-            <option value="">Layer: All</option>
-            <option value="L1">L1</option>
-            <option value="L2">L2</option>
-            <option value="L3">L3</option>
-            <option value="L4">L4</option>
-            <option value="L5">L5</option>
-            <option value="L6">L6</option>
-          </select>
-
-          <select id="fJur">
-            <option value="">Jurisdiction: All</option>
-            <option value="EU">EU</option>
-            <option value="US">US</option>
-            <option value="Taiwan">Taiwan</option>
-            <option value="International">International</option>
-          </select>
-
-          <select id="fCat">
-            <option value="">Category: All</option>
-            <option value="AI">AI</option>
-            <option value="Cyber">Cyber</option>
-            <option value="Privacy">Privacy</option>
-            <option value="SupplyChain">SupplyChain</option>
-            <option value="Financial">Financial</option>
-            <option value="Platform">Platform</option>
-            <option value="Governance">Governance</option>
-          </select>
-
-          <select id="fTW">
-            <option value="">Taiwan Status: All</option>
-            <option value="已通過">已通過</option>
-            <option value="已公布待施行">已公布待施行</option>
-            <option value="已發布指引">已發布指引</option>
-            <option value="進行中">進行中</option>
-            <option value="已施行">已施行</option>
-            <option value="尚未">尚未</option>
-            <option value="N/A">N/A</option>
-            <option value="可採用">可採用</option>
-          </select>
-
-          <button class="btn" id="btnClear">Clear</button>
-
-          <button class="btn" id="btnPNG">Export PNG</button>
-          <button class="btn" id="btnSVG">Export SVG</button>
-        </div>
-      </div>
-
-      <div id="cy"></div>
-
-      <div class="legend">
-        <span class="chip"><span class="dot" style="background:#93c5fd"></span>L1 原則</span>
-        <span class="chip"><span class="dot" style="background:#a78bfa"></span>L2 法律</span>
-        <span class="chip"><span class="dot" style="background:#60a5fa"></span>L3 管理系統</span>
-        <span class="chip"><span class="dot" style="background:#f59e0b"></span>L4 框架</span>
-        <span class="chip"><span class="dot" style="background:#22c55e"></span>L5 技術控制</span>
-        <span class="chip"><span class="dot" style="background:#e879f9"></span>L6 產業監理</span>
-      </div>
-    </div>
-
-    <aside class="card" id="side">
-      <div class="titleRow">
-        <div>
-          <div class="h2" id="sideTitle">點一個節點</div>
-          <div class="muted" id="sideSub">右側會顯示節點屬性，並可開啟 Notion。</div>
-        </div>
-        <button class="btn" id="btnOpen" disabled>Open Notion</button>
-      </div>
-
-      <div class="hr"></div>
-
-      <div class="kv">
-        <div class="k">Node Key</div><div class="v mono" id="sideKey">—</div>
-        <div class="k">Layer</div><div class="v" id="sideLayer">—</div>
-        <div class="k">Type</div><div class="v" id="sideType">—</div>
-        <div class="k">Jurisdiction</div><div class="v" id="sideJur">—</div>
-        <div class="k">Category</div><div class="v" id="sideCat">—</div>
-        <div class="k">Taiwan Status</div>
-        <div class="v" id="sideTW">
-          <span class="badge"><span class="badgeDot" style="background:#334155"></span>—</span>
-        </div>
-        <div class="k">Summary</div><div class="v" id="sideSum">—</div>
-        <div class="k">Source</div><div class="v" id="sideSrc">—</div>
-        <div class="k">Last Updated</div><div class="v" id="sideUpd">—</div>
-      </div>
-
-      <div class="hr"></div>
-
-      <div class="muted">
-        資料來源：若同目錄存在 <span class="mono">data.json</span> 則自動載入；否則使用內建示範資料。<br/>
-        你後續只要更新 JSON，四視圖、tooltip、匯出都會同步生效。
-      </div>
-
-      <footer>
-        Notion 嵌入：在 Notion 使用 <span class="mono">/embed</span> 貼上部署網址。<br/>
-        Open Notion 灰色：代表該 Node Key 尚未在 <span class="mono">NOTION_LINKS</span> 填入連結。
-      </footer>
-    </aside>
-  </div>
-</main>
+<div id="cy"></div>
 
 <script>
-  // ==========================
-  // 1) Notion Links（貼 share-to-web）
-  // ==========================
-  const NOTION_LINKS = {
-    EU_AI_ACT: "https://eur-lex.europa.eu/legal-content/EN/TXT/PDF/?uri=OJ%3AL_202401689",
-    DORA: "https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX%3A32022R2554",
-    NIS2: "https://eur-lex.europa.eu/eli/dir/2022/2555/oj/eng",
-    EU_CRA: "https://eur-lex.europa.eu/eli/reg/2024/2847/oj/eng",
-    GDPR: "https://eur-lex.europa.eu/eli/reg/2016/679/oj",
-  TW_AI_ACT: "https://moda.gov.tw/en/press/press-releases/18316",
-  TW_CYBER_ACT: "https://moda.gov.tw/en/ACS/laws/regulations/518",
-  TW_PDPA_PDPC: "https://law.moj.gov.tw/eng/LawClass/LawAll.aspx?PCode=I0050021",
-  TW_FRAUD_PLATFORM: "https://moda.gov.tw/en/major-policies/three-arrows-for-digital-development/1673",
-  TW_FSC_AI_GUIDE: "https://www.fsc.gov.tw/en/",
-  TW_HIGH_RISK_CLASSIFICATION: "PASTE_NOTION_PAGE_LINK",
-  TW_AI_ASSURANCE_AUDIT: "PASTE_NOTION_PAGE_LINK",
-  ISO_42001: "https://www.iso.org/standard/42001",
-  ISO_23894: "https://www.iso.org/standard/77304.html",
-  ISO_31000: "https://www.iso.org/standard/65694.html",
-  ISO_27001: "https://www.iso.org/standard/27001",
-  ISO_27701: "https://www.iso.org/standard/71670.html",
-  ISO_22301: "https://www.iso.org/standard/75106.html",
-  ISO_38507: "https://www.iso.org/standard/56641.html",
-  ISO_IEC_27036_SUPPLYCHAIN: "https://www.iso.org/standard/82890.html",
-  NIST_AI_RMF: "https://nvlpubs.nist.gov/nistpubs/ai/nist.ai.100-1.pdf",
-  NIST_CSF_2: "https://nvlpubs.nist.gov/nistpubs/CSWP/NIST.CSWP.29.pdf",
-  NIST_RMF_800_37: "https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-37r2.pdf",
-  NIST_800_53: "https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-53r5.pdf",
-  NIST_PRIVACY_FRAMEWORK: "https://www.nist.gov/privacy-framework",
-    AI_RISK: "PASTE_NOTION_LINK",
-    CYBER_RISK: "PASTE_NOTION_LINK",
-    PRIVACY_RISK: "PASTE_NOTION_LINK",
-    SUPPLYCHAIN_RISK: "PASTE_NOTION_LINK",
-    SECTOR_RISK: "PASTE_NOTION_LINK",
-    PRINCIPLES_LAYER: "PASTE_NOTION_LINK",
-    HARDLAW_LAYER: "PASTE_NOTION_LINK",
-    MANAGEMENT_SYSTEM_LAYER: "PASTE_NOTION_LINK",
-    OPERATIONAL_FRAMEWORK_LAYER: "PASTE_NOTION_LINK",
-  };
 
-  // ==========================
-  // 2) 示範資料（若找不到 data.json 就用這份）
-  // ==========================
-  const DEFAULT_DATA = {
-    nodes: [
-      { id:"PRINCIPLES_LAYER", name:"L1 原則", key:"PRINCIPLES_LAYER", layer:"L1", type:"Overview", jur:"International", cat:["Governance"], tw:"可採用",
-        summary:"價值/人權/倫理原則層，定錨治理意圖。", src:"", updated:"" },
-      { id:"HARDLAW_LAYER", name:"L2 法律/監管", key:"HARDLAW_LAYER", layer:"L2", type:"Overview", jur:"International", cat:["Governance"], tw:"可採用",
-        summary:"可執行的法規義務層（禁止/要求/通報/合規）。", src:"", updated:"" },
-      { id:"MANAGEMENT_SYSTEM_LAYER", name:"L3 管理系統", key:"MANAGEMENT_SYSTEM_LAYER", layer:"L3", type:"Overview", jur:"International", cat:["Governance"], tw:"可採用",
-        summary:"ISO 管理系統把治理制度化並可稽核。", src:"", updated:"" },
-      { id:"OPERATIONAL_FRAMEWORK_LAYER", name:"L4 操作框架", key:"OPERATIONAL_FRAMEWORK_LAYER", layer:"L4", type:"Overview", jur:"International", cat:["Governance"], tw:"可採用",
-        summary:"NIST 等工作分解框架，落到流程、產物、指標。", src:"", updated:"" },
+fetch("data.json").then(r=>r.json()).then(data=>{
+
+const cy = cytoscape({
+container: document.getElementById("cy"),
+elements: [
+...data.nodes.map(n=>({data:n})),
+...data.edges.map(e=>({data:e}))
+],
+style:[
+{selector:"node",style:{
+"label":"data(name)",
+"background-color":"#60a5fa",
+"color":"white",
+"text-wrap":"wrap",
+"text-max-width":120
+}},
+{selector:"edge",style:{
+"width":2,
+"line-color":"#888",
+"target-arrow-shape":"triangle",
+"target-arrow-color":"#888",
+"curve-style":"bezier"
+}},
+{selector:".dim",style:{opacity:0.15}}
+],
+layout:{name:"cose"}
+});
+
+function applyPhase(){
+let p=document.getElementById("phase").value;
+cy.nodes().forEach(n=>{
+let ph=n.data("phase")||"all";
+n.toggleClass("dim",!(p==="all"||ph==="all"||ph===p));
+});
+}
+
+function applyReg(){
+let show=document.getElementById("regToggle").checked;
+cy.nodes().forEach(n=>{
+if(n.data("tier")==="reg"&&!show) n.style("display","none");
+else n.style("display","element");
+});
+}
+
+document.getElementById("phase").onchange=applyPhase;
+document.getElementById("regToggle").onchange=applyReg;
+
+document.getElementById("fit").onclick=()=>cy.fit();
+document.getElementById("export").onclick=()=>{
+let png=cy.png({bg:"#fff"});
+let a=document.createElement("a");
+a.href=png;
+a.download="trg.png";
+a.click();
+};
+
+});
 
-      { id:"AI_RISK", name:"AI Risk", key:"AI_RISK", layer:"L1", type:"Concept", jur:"International", cat:["AI"], tw:"可採用",
-        summary:"模型/資料/部署/濫用/問責/透明與社會技術傷害。", src:"", updated:"" },
-      { id:"CYBER_RISK", name:"Cyber Risk", key:"CYBER_RISK", layer:"L1", type:"Concept", jur:"International", cat:["Cyber"], tw:"可採用",
-        summary:"CIA、漏洞治理、IR、韌性測試、供應鏈資安。", src:"", updated:"" },
-      { id:"PRIVACY_RISK", name:"Privacy Risk", key:"PRIVACY_RISK", layer:"L1", type:"Concept", jur:"International", cat:["Privacy"], tw:"可採用",
-        summary:"DPIA、權利請求、跨境、最小化、留存與安全措施。", src:"", updated:"" },
-      { id:"SUPPLYCHAIN_RISK", name:"Supply-chain Risk", key:"SUPPLYCHAIN_RISK", layer:"L1", type:"Concept", jur:"International", cat:["SupplyChain"], tw:"可採用",
-        summary:"第三方依賴、外包治理、集中度、SCRM、合約控制。", src:"", updated:"" },
-      { id:"SECTOR_RISK", name:"Sector/Reg Risk", key:"SECTOR_RISK", layer:"L1", type:"Concept", jur:"International", cat:["Governance"], tw:"可採用",
-        summary:"產業別監理期待、通報時效、稽核/確信要求。", src:"", updated:"" },
-
-      { id:"EU_AI_ACT", name:"EU AI Act", key:"EU_AI_ACT", layer:"L2", type:"Law", jur:"EU", cat:["AI"], tw:"N/A",
-        summary:"風險分級＋高風險 AI 強制義務與上市後監控。", src:"https://eur-lex.europa.eu/eli/reg/2024/1689/oj", updated:"2024-06-13" },
-      { id:"DORA", name:"DORA", key:"DORA", layer:"L2", type:"Law", jur:"EU", cat:["Cyber","Financial","SupplyChain"], tw:"N/A",
-        summary:"金融業 ICT 風險、事件通報、韌性測試與第三方風險。", src:"https://eur-lex.europa.eu/eli/reg/2022/2554/oj", updated:"2022-12-14" },
-      { id:"NIS2", name:"NIS2", key:"NIS2", layer:"L2", type:"Law", jur:"EU", cat:["Cyber"], tw:"N/A",
-        summary:"關鍵/重要組織資安治理、風險管理、通報義務。", src:"https://eur-lex.europa.eu/eli/dir/2022/2555/oj", updated:"2022-12-14" },
-      { id:"EU_CRA", name:"EU CRA", key:"EU_CRA", layer:"L2", type:"Law", jur:"EU", cat:["Cyber","SupplyChain"], tw:"N/A",
-        summary:"數位產品資安要求：設計即安全、漏洞處理、全生命週期義務。", src:"https://eur-lex.europa.eu/eli/reg/2024/2847/oj", updated:"2024-10-23" },
-      { id:"GDPR", name:"GDPR", key:"GDPR", layer:"L2", type:"Law", jur:"EU", cat:["Privacy"], tw:"N/A",
-        summary:"隱私風險導向治理：DPIA、資料主體權利、跨境移轉。", src:"https://eur-lex.europa.eu/eli/reg/2016/679/oj", updated:"2016-04-27" },
-
-      { id:"ISO_42001", name:"ISO/IEC 42001", key:"ISO_42001", layer:"L3", type:"Standard", jur:"International", cat:["AI"], tw:"可採用",
-        summary:"AI 管理系統（AIMS），可稽核、可持續改善。", src:"https://www.iso.org/standard/81230.html", updated:"2023-12-01" },
-      { id:"ISO_23894", name:"ISO/IEC 23894", key:"ISO_23894", layer:"L3", type:"Standard", jur:"International", cat:["AI"], tw:"可採用",
-        summary:"AI 風險管理指引，補強風險流程與情境化分析。", src:"https://www.iso.org/standard/77304.html", updated:"2023-12-01" },
-      { id:"ISO_27001", name:"ISO/IEC 27001", key:"ISO_27001", layer:"L3", type:"Standard", jur:"International", cat:["Cyber"], tw:"可採用",
-        summary:"ISMS 底座，資安治理與控制制度化。", src:"https://www.iso.org/standard/27001", updated:"2022-10-25" },
-
-      { id:"NIST_AI_RMF", name:"NIST AI RMF", key:"NIST_AI_RMF", layer:"L4", type:"Framework", jur:"US", cat:["AI"], tw:"可採用",
-        summary:"GOV/MAP/MEASURE/MANAGE，AI 風險治理工作分解。", src:"https://nvlpubs.nist.gov/nistpubs/ai/NIST.AI.100-1.pdf", updated:"2023-01-26" },
-      { id:"NIST_CSF_2", name:"NIST CSF 2.0", key:"NIST_CSF_2", layer:"L4", type:"Framework", jur:"US", cat:["Cyber"], tw:"可採用",
-        summary:"CSF 2.0 加入 GOVERN，配套 profile/tiers。", src:"https://nvlpubs.nist.gov/nistpubs/CSWP/NIST.CSWP.29.pdf", updated:"2024-02-26" },
-
-      { id:"TW_AI_ACT", name:"台灣 AI 基本法", key:"TW_AI_ACT", layer:"L2", type:"Law", jur:"Taiwan", cat:["AI"], tw:"已通過",
-        summary:"台灣 AI 治理架構定錨（偏原則/架構）。", src:"", updated:"" },
-      { id:"TW_CYBER_ACT", name:"台灣 資安管理法", key:"TW_CYBER_ACT", layer:"L2", type:"Law", jur:"Taiwan", cat:["Cyber"], tw:"已公布待施行",
-        summary:"資安治理與通報制度升級（施行/配套待追蹤）。", src:"", updated:"" },
-      { id:"TW_PDPA_PDPC", name:"台灣 個資法/PDPC", key:"TW_PDPA_PDPC", layer:"L2", type:"Law", jur:"Taiwan", cat:["Privacy"], tw:"已公布待施行",
-        summary:"個資治理與監理機制強化（PDPC 配套）。", src:"", updated:"" },
-      { id:"TW_FRAUD_PLATFORM", name:"台灣 平台反詐", key:"TW_FRAUD_PLATFORM", layer:"L2", type:"Law", jur:"Taiwan", cat:["Platform","Cyber"], tw:"已施行",
-        summary:"平台/廣告生態反詐義務與治理要求。", src:"", updated:"" },
-      { id:"TW_FSC_AI_GUIDE", name:"FSC 金融業 AI 指引", key:"TW_FSC_AI_GUIDE", layer:"L6", type:"Guideline", jur:"Taiwan", cat:["AI","Financial"], tw:"已發布指引",
-        summary:"金融業 AI 治理、責任歸屬與風險控管期待。", src:"https://www.fsc.gov.tw/en/", updated:"" },
-
-      { id:"TW_HIGH_RISK_CLASSIFICATION", name:"高風險 AI 分級（缺口）", key:"TW_HIGH_RISK_CLASSIFICATION", layer:"L6", type:"PolicyGap", jur:"Taiwan", cat:["AI"], tw:"尚未",
-        summary:"台灣版高風險 AI 分級＋文件義務制度化缺口。", src:"", updated:"" },
-      { id:"TW_AI_ASSURANCE_AUDIT", name:"AI Assurance/審計（缺口）", key:"TW_AI_ASSURANCE_AUDIT", layer:"L6", type:"PolicyGap", jur:"Taiwan", cat:["AI","Cyber"], tw:"尚未",
-        summary:"第三方測試/審計/上市後監控制度化缺口（可產品化）。", src:"", updated:"" },
-    ],
-    edges: [
-      { id:"e_L1_L2", source:"PRINCIPLES_LAYER", target:"HARDLAW_LAYER", label:"principles → obligations" },
-      { id:"e_L2_L3", source:"HARDLAW_LAYER", target:"MANAGEMENT_SYSTEM_LAYER", label:"obligations → system" },
-      { id:"e_L3_L4", source:"MANAGEMENT_SYSTEM_LAYER", target:"OPERATIONAL_FRAMEWORK_LAYER", label:"system → execution" },
-
-      { id:"e_L2_EUAI", source:"HARDLAW_LAYER", target:"EU_AI_ACT" },
-      { id:"e_L2_DORA", source:"HARDLAW_LAYER", target:"DORA" },
-      { id:"e_L2_NIS2", source:"HARDLAW_LAYER", target:"NIS2" },
-      { id:"e_L2_CRA",  source:"HARDLAW_LAYER", target:"EU_CRA" },
-      { id:"e_L2_GDPR", source:"HARDLAW_LAYER", target:"GDPR" },
-
-      { id:"e_L3_42001", source:"MANAGEMENT_SYSTEM_LAYER", target:"ISO_42001" },
-      { id:"e_L3_23894", source:"MANAGEMENT_SYSTEM_LAYER", target:"ISO_23894" },
-      { id:"e_L3_27001", source:"MANAGEMENT_SYSTEM_LAYER", target:"ISO_27001" },
-
-      { id:"e_L4_RMF", source:"OPERATIONAL_FRAMEWORK_LAYER", target:"NIST_AI_RMF" },
-      { id:"e_L4_CSF", source:"OPERATIONAL_FRAMEWORK_LAYER", target:"NIST_CSF_2" },
-
-      { id:"e_EUAI_AI", source:"EU_AI_ACT", target:"AI_RISK", label:"targets" },
-      { id:"e_DORA_CY", source:"DORA", target:"CYBER_RISK", label:"targets" },
-      { id:"e_DORA_SC", source:"DORA", target:"SUPPLYCHAIN_RISK", label:"targets" },
-      { id:"e_NIS2_CY", source:"NIS2", target:"CYBER_RISK", label:"targets" },
-      { id:"e_GDPR_PR", source:"GDPR", target:"PRIVACY_RISK", label:"targets" },
-      { id:"e_CRA_CY", source:"EU_CRA", target:"CYBER_RISK", label:"targets" },
-      { id:"e_CRA_SC", source:"EU_CRA", target:"SUPPLYCHAIN_RISK", label:"targets" },
-
-      { id:"e_TWAI_AI", source:"TW_AI_ACT", target:"AI_RISK" },
-      { id:"e_TWCS_CY", source:"TW_CYBER_ACT", target:"CYBER_RISK" },
-      { id:"e_TWPD_PR", source:"TW_PDPA_PDPC", target:"PRIVACY_RISK" },
-      { id:"e_TWFSC_AI", source:"TW_FSC_AI_GUIDE", target:"AI_RISK" },
-      { id:"e_TWGAP1", source:"TW_HIGH_RISK_CLASSIFICATION", target:"EU_AI_ACT", label:"gap vs" },
-      { id:"e_TWGAP2", source:"TW_AI_ASSURANCE_AUDIT", target:"NIST_AI_RMF", label:"gap vs" },
-    ]
-  };
-
-  // ==========================
-  // 3) 資料載入：優先 data.json，失敗則用 DEFAULT_DATA
-  // ==========================
-  async function loadData(){
-    try{
-      const r = await fetch("./data.json", { cache: "no-store" });
-      if(!r.ok) throw new Error("no data.json");
-      const j = await r.json();
-      if(!j || !Array.isArray(j.nodes) || !Array.isArray(j.edges)) throw new Error("bad schema");
-      return j;
-    }catch(_){
-      return DEFAULT_DATA;
-    }
-  }
-
-  // ==========================
-  // 4) Cytoscape 初始化（含 Tooltip/匯出/四視圖）
-  // ==========================
-  function layerRank(layer){ return ({L1:1,L2:2,L3:3,L4:4,L5:5,L6:6}[layer] || 9); }
-  function layerColor(layer){
-    return ({L1:"#93c5fd", L2:"#a78bfa", L3:"#60a5fa", L4:"#f59e0b", L5:"#22c55e", L6:"#e879f9"}[layer] || "#94a3b8");
-  }
-  function twBorder(tw){
-    return ({
-      "已通過":"#22c55e",
-      "已公布待施行":"#f59e0b",
-      "已發布指引":"#a78bfa",
-      "進行中":"#60a5fa",
-      "已施行":"#22c55e",
-      "尚未":"#94a3b8",
-      "可採用":"#64748b",
-      "N/A":"#334155",
-    }[tw] || "#334155");
-  }
-
-  function badgeHTML(tw){
-    const c = twBorder(tw);
-    const label = tw || "—";
-    return `<span class="badge"><span class="badgeDot" style="background:${c}"></span>${label}</span>`;
-  }
-
-  function safe(s){ return (s ?? "").toString().replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
-
-  function tipContent(d){
-    const name = safe(d.name);
-    const key = safe(d.key);
-    const summary = safe(d.summary || "—");
-    const tw = safe(d.tw || "—");
-    const layer = safe(d.layer || "—");
-    const jur = safe(d.jur || "—");
-    const type = safe(d.type || "—");
-    const cats = safe((d.cat || "").split(";").filter(Boolean).join(", ") || "—");
-    return `
-      <div class="tipTitle">${name}</div>
-      <div class="tipKey">${key}</div>
-      <div style="margin-top:6px;color:#9ca3af;">${summary}</div>
-      <div class="tipRow">
-        <span class="tipChip">TW: ${tw}</span>
-        <span class="tipChip">${layer}</span>
-        <span class="tipChip">${jur}</span>
-        <span class="tipChip">${type}</span>
-        <span class="tipChip">${cats}</span>
-      </div>
-    `;
-  }
-
-  function downloadText(filename, text, mime="text/plain"){
-    const blob = new Blob([text], { type: mime });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = filename;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    URL.revokeObjectURL(url);
-  }
-
-  function downloadDataURL(filename, dataUrl){
-    const a = document.createElement("a");
-    a.href = dataUrl;
-    a.download = filename;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-  }
-
-  function elementsFromData(data){
-    const els = [];
-    for(const n of data.nodes){
-      els.push({ data:{
-        id:n.id, name:n.name, key:n.key, layer:n.layer, type:n.type,
-        jur:n.jur, cat:(n.cat || []).join(";"), tw:n.tw,
-        summary:n.summary, src:n.src, updated:n.updated
-      }});
-    }
-    for(const e of data.edges){
-      els.push({ data:{ id:e.id, source:e.source, target:e.target, label:e.label || "" }});
-    }
-    return els;
-  }
-
-  async function main(){
-    const data = await loadData();
-
-    const cy = cytoscape({
-      container: document.getElementById("cy"),
-      elements: elementsFromData(data),
-      wheelSensitivity: 0.18,
-      style: [
-        { selector:"node", style:{
-          "background-color": (ele) => layerColor(ele.data("layer")),
-          "label":"data(name)",
-          "color":"#e5e7eb",
-          "font-size": 14,
-          "text-wrap":"wrap",
-          "text-max-width": 170,
-          "text-valign":"center",
-          "text-halign":"center",
-          "text-outline-width": 2,
-          "text-outline-color": "rgba(2,6,23,.70)",
-          "width": 56,
-          "height": 56,
-          "border-width": 3,
-          "border-color": (ele) => twBorder(ele.data("tw")),
-          "overlay-padding": 6,
-          "z-index": 10
-        }},
-        // 缺口（PolicyGap）用菱形＋虛線邊框
-        { selector:"node[type = 'PolicyGap']", style:{
-          "shape":"diamond",
-          "border-style":"dashed",
-          "border-width": 4
-        }},
-        // law/standard/framework 用不同形狀（更像專業圖）
-        { selector:"node[type = 'Law']", style:{ "shape":"round-rectangle" }},
-        { selector:"node[type = 'Standard']", style:{ "shape":"ellipse" }},
-        { selector:"node[type = 'Framework']", style:{ "shape":"hexagon" }},
-        { selector:"node[type = 'Overview']", style:{ "shape":"rectangle", "width": 72, "height": 72, "font-size": 15 } },
-        { selector:"node[type = 'Concept']", style:{ "shape":"octagon" } },
-
-        { selector:"edge", style:{
-          "width": 1.6,
-          "line-color":"rgba(148,163,184,.55)",
-          "target-arrow-shape":"triangle",
-          "target-arrow-color":"rgba(148,163,184,.55)",
-          "curve-style":"bezier",
-          "label":"data(label)",
-          "font-size": 10,
-          "color":"rgba(229,231,235,.85)",
-          "text-background-color":"rgba(2,6,23,.75)",
-          "text-background-opacity": 1,
-          "text-background-padding": 2,
-          "text-rotation":"autorotate"
-        }},
-        { selector:".hidden", style:{ "display":"none" } },
-        { selector:".dim", style:{ "opacity": 0.15 } },
-        { selector:".selected", style:{ "border-width": 5, "border-color": "#60a5fa" } },
-      ],
-    });
-
-    // ---------- Tooltip: hover ----------
-    // Build & cache tippy instances per node for performance.
-    const tipMap = new Map();
-
-    function makeTippy(node){
-      const ref = node.popperRef(); // used by tippy positioning
-      const dummy = document.createElement('div');
-
-      const instance = tippy(dummy, {
-        getReferenceClientRect: ref.getBoundingClientRect,
-        trigger: 'manual',
-        placement: 'top',
-        theme: 'cy',
-        interactive: true,
-        appendTo: document.body,
-        content: tipContent(node.data()),
-        maxWidth: 360,
-      });
-
-      tipMap.set(node.id(), instance);
-      return instance;
-    }
-
-    cy.on('mouseover', 'node', (evt) => {
-      const node = evt.target;
-      const t = tipMap.get(node.id()) || makeTippy(node);
-      t.setContent(tipContent(node.data()));
-      t.show();
-    });
-
-    cy.on('mouseout', 'node', (evt) => {
-      const t = tipMap.get(evt.target.id());
-      if(t) t.hide();
-    });
-
-    // ---------- Side panel ----------
-    const side = {
-      title: document.getElementById("sideTitle"),
-      sub: document.getElementById("sideSub"),
-      key: document.getElementById("sideKey"),
-      layer: document.getElementById("sideLayer"),
-      type: document.getElementById("sideType"),
-      jur: document.getElementById("sideJur"),
-      cat: document.getElementById("sideCat"),
-      tw: document.getElementById("sideTW"),
-      sum: document.getElementById("sideSum"),
-      src: document.getElementById("sideSrc"),
-      upd: document.getElementById("sideUpd"),
-      open: document.getElementById("btnOpen"),
-    };
-    let currentKey = null;
-
-    function showNode(ele){
-      cy.nodes().removeClass("selected");
-      ele.addClass("selected");
-
-      const d = ele.data();
-      currentKey = d.key;
-
-      side.title.textContent = d.name;
-      side.sub.textContent = `${d.layer} · ${d.type} · ${d.jur}`;
-      side.key.textContent = d.key || "—";
-      side.layer.textContent = d.layer || "—";
-      side.type.textContent = d.type || "—";
-      side.jur.textContent = d.jur || "—";
-      side.cat.textContent = (d.cat || "").split(";").filter(Boolean).join(", ") || "—";
-      side.tw.innerHTML = badgeHTML(d.tw);
-      side.sum.textContent = d.summary || "—";
-      side.src.innerHTML = d.src ? `<a href="${d.src}" target="_blank" rel="noopener noreferrer">Source URL</a>` : "—";
-      side.upd.textContent = d.updated || "—";
-
-      const url = NOTION_LINKS[currentKey];
-      side.open.disabled = !(url && !url.includes("PASTE_NOTION_LINK"));
-    }
-
-    cy.on("tap", "node", (evt) => showNode(evt.target));
-
-    side.open.addEventListener("click", () => {
-      if(!currentKey) return;
-      const url = NOTION_LINKS[currentKey];
-      if(!url || url.includes("PASTE_NOTION_LINK")){
-        alert(`尚未設定 Notion 連結：${currentKey}\n請在 NOTION_LINKS 貼上該頁 Share-to-web 連結。`);
-        return;
-      }
-      window.open(url, "_blank", "noopener,noreferrer");
-    });
-
-    // ---------- Filters ----------
-    const fLayer = document.getElementById("fLayer");
-    const fJur = document.getElementById("fJur");
-    const fCat = document.getElementById("fCat");
-    const fTW = document.getElementById("fTW");
-    const q = document.getElementById("q");
-
-    function applyFilters(){
-      const L = fLayer.value, J = fJur.value, C = fCat.value, T = fTW.value;
-
-      cy.nodes().forEach(n => {
-        const okL = !L || n.data("layer") === L;
-        const okJ = !J || n.data("jur") === J;
-        const cats = (n.data("cat") || "").split(";").filter(Boolean);
-        const okC = !C || cats.includes(C);
-        const okT = !T || n.data("tw") === T;
-        n.toggleClass("hidden", !(okL && okJ && okC && okT));
-      });
-
-      cy.edges().forEach(e => {
-        const s = e.source(), t = e.target();
-        e.toggleClass("hidden", s.hasClass("hidden") || t.hasClass("hidden"));
-      });
-    }
-
-    function clearFilters(){
-      fLayer.value = ""; fJur.value = ""; fCat.value = ""; fTW.value = ""; q.value = "";
-      cy.elements().removeClass("hidden");
-    }
-
-    [fLayer,fJur,fCat,fTW].forEach(el => el.addEventListener("change", () => { applyFilters(); }));
-    document.getElementById("btnClear").addEventListener("click", () => { clearFilters(); applyFilters(); });
-
-    // ---------- Search ----------
-    function find(){
-      const term = (q.value || "").trim().toLowerCase();
-      if(!term) return;
-
-      const hit = cy.nodes().filter(n => {
-        const name = (n.data("name")||"").toLowerCase();
-        const key  = (n.data("key")||"").toLowerCase();
-        return name.includes(term) || key.includes(term) || n.id().toLowerCase() === term;
-      }).filter(n => !n.hasClass("hidden"))[0];
-
-      if(!hit){
-        alert("找不到（或被篩選隱藏）。請清除篩選後再試一次。");
-        return;
-      }
-      cy.animate({ center: { eles: hit }, zoom: Math.max(cy.zoom(), 1.25) }, { duration: 360 });
-      showNode(hit);
-    }
-    document.getElementById("btnFind").addEventListener("click", find);
-    q.addEventListener("keydown", (e) => { if(e.key === "Enter") find(); });
-
-    // ---------- Views (4) ----------
-    const btnLayer = document.getElementById("viewLayer");
-    const btnRisk  = document.getElementById("viewRisk");
-    const btnStack = document.getElementById("viewStack");
-    const btnTW    = document.getElementById("viewTW");
-    const viewButtons = [btnLayer, btnRisk, btnStack, btnTW];
-    let currentView = "layer";
-
-    function setActive(btn){
-      viewButtons.forEach(b => b.classList.remove("active"));
-      btn.classList.add("active");
-    }
-    function showAll(){
-      cy.elements().removeClass("hidden dim");
-    }
-
-    function layoutLayerView(){
-      showAll();
-      cy.layout({
-        name: "concentric",
-        animate: true,
-        fit: true,
-        padding: 30,
-        concentric: (n) => 10 - layerRank(n.data("layer")),
-        levelWidth: () => 1
-      }).run();
-      cy.fit(undefined, 30);
-    }
-
-    function layoutRiskView(){
-      showAll();
-      const axes = ["AI_RISK","CYBER_RISK","PRIVACY_RISK","SUPPLYCHAIN_RISK","SECTOR_RISK"];
-      const axisNodes = cy.nodes().filter(n => axes.includes(n.id()));
-      const keep = axisNodes.union(axisNodes.neighborhood().nodes());
-      cy.nodes().forEach(n => n.toggleClass("hidden", !keep.includes(n)));
-      cy.edges().forEach(e => e.toggleClass("hidden", e.source().hasClass("hidden") || e.target().hasClass("hidden")));
-      cy.layout({
-        name:"concentric",
-        animate:true,
-        fit:true,
-        padding:30,
-        concentric: (n) => axes.includes(n.id()) ? 100 : 50 - layerRank(n.data("layer")),
-        levelWidth: () => 1
-      }).run();
-      cy.fit(undefined, 30);
-    }
-
-    function layoutStackView(){
-      showAll();
-      const metas = ["PRINCIPLES_LAYER","HARDLAW_LAYER","MANAGEMENT_SYSTEM_LAYER","OPERATIONAL_FRAMEWORK_LAYER"];
-      const metaNodes = cy.nodes().filter(n => metas.includes(n.id()));
-      const keep = metaNodes.union(metaNodes.neighborhood().nodes());
-      cy.nodes().forEach(n => n.toggleClass("hidden", !keep.includes(n)));
-      cy.edges().forEach(e => e.toggleClass("hidden", e.source().hasClass("hidden") || e.target().hasClass("hidden")));
-      cy.layout({
-        name:"breadthfirst",
-        animate:true,
-        fit:true,
-        padding:30,
-        directed:true,
-        spacingFactor: 1.4,
-        roots: metaNodes
-      }).run();
-      cy.fit(undefined, 30);
-    }
-
-    function layoutTaiwanView(){
-      showAll();
-      const taiwanIds = [
-        "TW_AI_ACT","TW_CYBER_ACT","TW_PDPA_PDPC","TW_FRAUD_PLATFORM","TW_FSC_AI_GUIDE",
-        "TW_HIGH_RISK_CLASSIFICATION","TW_AI_ASSURANCE_AUDIT"
-      ];
-      const compareIds = ["EU_AI_ACT","NIST_AI_RMF","ISO_42001","DORA","NIS2","GDPR","EU_CRA"];
-      const axisIds = ["AI_RISK","CYBER_RISK","PRIVACY_RISK","SUPPLYCHAIN_RISK","SECTOR_RISK"];
-
-      const keep = cy.nodes().filter(n => taiwanIds.includes(n.id()) || compareIds.includes(n.id()) || axisIds.includes(n.id()));
-      const keep2 = keep.union(keep.neighborhood().nodes());
-
-      cy.nodes().forEach(n => n.toggleClass("hidden", !keep2.includes(n)));
-      cy.edges().forEach(e => e.toggleClass("hidden", e.source().hasClass("hidden") || e.target().hasClass("hidden")));
-
-      cy.nodes().forEach(n => {
-        const isTW = (n.data("jur") === "Taiwan") || taiwanIds.includes(n.id());
-        n.toggleClass("dim", !isTW);
-      });
-
-      cy.layout({
-        name:"cose",
-        animate:true,
-        fit:true,
-        padding:30,
-        nodeRepulsion: 9000,
-        idealEdgeLength: 130,
-        edgeElasticity: 0.45
-      }).run();
-      cy.fit(undefined, 30);
-    }
-
-    function applyView(view){
-      clearFilters(); // 讓視圖 deterministic
-      applyFilters();
-
-      if(view === "layer") layoutLayerView();
-      else if(view === "risk") layoutRiskView();
-      else if(view === "stack") layoutStackView();
-      else if(view === "tw") layoutTaiwanView();
-
-      currentView = view;
-    }
-
-    btnLayer.addEventListener("click", () => { setActive(btnLayer); applyView("layer"); });
-    btnRisk.addEventListener("click",  () => { setActive(btnRisk);  applyView("risk"); });
-    btnStack.addEventListener("click", () => { setActive(btnStack); applyView("stack"); });
-    btnTW.addEventListener("click",    () => { setActive(btnTW);    applyView("tw"); });
-
-    // Fit / Re-layout
-    document.getElementById("btnFit").addEventListener("click", () => cy.fit(undefined, 30));
-    document.getElementById("btnReset").addEventListener("click", () => applyView(currentView));
-
-    // ---------- Export PNG / SVG ----------
-    document.getElementById("btnPNG").addEventListener("click", () => {
-      const stamp = new Date().toISOString().slice(0,19).replace(/[:T]/g,'-');
-      const png = cy.png({ full: true, scale: 2, bg: "#0b0f17" });
-      downloadDataURL(`tech-risk-map_${currentView}_${stamp}.png`, png);
-    });
-
-    document.getElementById("btnSVG").addEventListener("click", () => {
-      const stamp = new Date().toISOString().slice(0,19).replace(/[:T]/g,'-');
-      // cytoscape-svg: cy.svg() returns svg string
-      if(typeof cy.svg !== "function"){
-        alert("SVG 匯出模組未載入（cytoscape-svg）。");
-        return;
-      }
-      const svg = cy.svg({ full: true, scale: 1, bg: "#0b0f17" });
-      downloadText(`tech-risk-map_${currentView}_${stamp}.svg`, svg, "image/svg+xml");
-    });
-
-    // ---------- Initial view ----------
-    applyView("layer");
-  }
-
-  main();
 </script>
 </body>
 </html>
